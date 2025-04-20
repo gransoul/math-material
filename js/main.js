@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const reqTable = document.createElement('table');
     reqTable.id = 'required-resources-table';
     const reqThead = document.createElement('thead');
-    reqThead.innerHTML = '<tr><th></th><th>Ресурс</th><th>Использовать</th><th>Необходимо</th><th>Получить</th><th>Используется</th><th>Итого</th></tr>';
+    reqThead.innerHTML = '<tr><th></th><th>Ресурс</th><th>Использовать</th><th>Необходимо</th><th>Для получения</th><th>Преобразует</th><th>Итого</th></tr>';
     reqTable.appendChild(reqThead);
     const reqTbody = renderRequiredResourcesTable(baseResourcesList);
     reqTable.appendChild(reqTbody);
