@@ -27,7 +27,7 @@ export function readUserInputs() {
     return { desiredMaterials, mineralUsagePercent };
 }
 
-export function renderResults(results) {
+export function renderResults(results, mineralUsagePercent = {}) {
     baseResourcesList.forEach(res => {
         const resourceName = res.name;
         const resourceId = res.id;
@@ -44,6 +44,8 @@ export function renderResults(results) {
         const initialValue = results.initialNeeds?.[resourceName] || 0;
         const obtainedValue = results.actuallyConverted?.[resourceName] || 0;
         const convertsOthersValue = results.conversionCosts?.[resourceName] || 0;
+        const amountToConvertValue = results.amountToConvert?.[resourceName] || 0;
+        const usagePercent = mineralUsagePercent[resourceName] ?? 100;
 
         // Необходимо
         if (initialSpan) {
@@ -51,11 +53,11 @@ export function renderResults(results) {
             initialSpan.textContent = formatted === '0' ? '-' : formatted;
             initialSpan.title = initialValue > 0 ? initialValue.toLocaleString('ru-RU') : '';
         }
-        // Для получения (только если реально был конвертирован)
+        // Для получения (amountToConvert, если usagePercent < 100)
         if (obtainedSpan) {
-            const formatted = formatNumber(obtainedValue);
-            obtainedSpan.textContent = obtainedValue > 0 ? formatted : '-';
-            obtainedSpan.title = obtainedValue > 0 ? obtainedValue.toLocaleString('ru-RU') : '';
+            const formatted = formatNumber(amountToConvertValue);
+            obtainedSpan.textContent = (usagePercent < 100 && amountToConvertValue > 0) ? formatted : '-';
+            obtainedSpan.title = (usagePercent < 100 && amountToConvertValue > 0) ? amountToConvertValue.toLocaleString('ru-RU') : '';
         }
         // Преобразует
         if (convertsOthersSpan) {
@@ -76,7 +78,7 @@ export function setupEventHandlers() {
     function updateCalculation() {
         const inputs = readUserInputs();
         const results = calculateRequiredResources(inputs.desiredMaterials, inputs.mineralUsagePercent);
-        renderResults(results);
+        renderResults(results, inputs.mineralUsagePercent);
         if (typeof window.updateExchangeStringInputImpl === 'function') {
             window.updateExchangeStringInputImpl();
         }
@@ -159,7 +161,7 @@ export function setExchangeString(str) {
     // После загрузки обновить расчёт и вывод
     const inputs = readUserInputs();
     const results = calculateRequiredResources(inputs.desiredMaterials, inputs.mineralUsagePercent);
-    renderResults(results);
+    renderResults(results, inputs.mineralUsagePercent);
     if (typeof window.updateExchangeStringInputImpl === 'function') {
         window.updateExchangeStringInputImpl();
     }

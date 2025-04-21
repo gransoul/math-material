@@ -53,10 +53,10 @@ export function calculateRequiredResources(desiredMaterials, mineralUsagePercent
             if (allocatedShare >= 0.999999) break;
         }
     });
-    // 4. Итоговая потребность (ТЗ 5)
+    // 4. Итоговая потребность: initialNeeds - amountToConvert + conversionCosts
     const finalRequired = {};
     allResources.forEach(resName => {
-        finalRequired[resName] = (initialNeeds[resName] || 0) + (conversionCosts[resName] || 0);
+        finalRequired[resName] = (initialNeeds[resName] || 0) - (amountToConvert[resName] || 0) + (conversionCosts[resName] || 0);
     });
     return {
         initialNeeds,
