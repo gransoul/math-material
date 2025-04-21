@@ -35,15 +35,15 @@ export function renderResults(results) {
         const totalSpan = document.getElementById('req-total-' + resourceId);
         // Необходимо
         const initialSpan = document.getElementById('req-initial-' + resourceId);
-        // Преобразовать
-        const toConvertSpan = document.getElementById('req-to-convert-' + resourceId);
-        // Используется
-        const usedSpan = document.getElementById('req-used-for-conversion-' + resourceId);
+        // Для получения (колонка)
+        const obtainedSpan = document.getElementById('req-to-convert-' + resourceId);
+        // Преобразует (колонка)
+        const convertsOthersSpan = document.getElementById('req-used-for-conversion-' + resourceId);
 
         const totalValue = results.finalRequired?.[resourceName] || 0;
         const initialValue = results.initialNeeds?.[resourceName] || 0;
-        const toConvertValue = results.amountToConvert?.[resourceName] || 0;
-        const usedValue = results.conversionCosts?.[resourceName] || 0;
+        const obtainedValue = results.actuallyConverted?.[resourceName] || 0;
+        const convertsOthersValue = results.conversionCosts?.[resourceName] || 0;
 
         // Необходимо
         if (initialSpan) {
@@ -51,17 +51,17 @@ export function renderResults(results) {
             initialSpan.textContent = formatted === '0' ? '-' : formatted;
             initialSpan.title = initialValue > 0 ? initialValue.toLocaleString('ru-RU') : '';
         }
-        // Преобразовать
-        if (toConvertSpan) {
-            const formatted = formatNumber(toConvertValue);
-            toConvertSpan.textContent = formatted === '0' ? '-' : formatted;
-            toConvertSpan.title = toConvertValue > 0 ? toConvertValue.toLocaleString('ru-RU') : '';
+        // Для получения (только если реально был конвертирован)
+        if (obtainedSpan) {
+            const formatted = formatNumber(obtainedValue);
+            obtainedSpan.textContent = obtainedValue > 0 ? formatted : '-';
+            obtainedSpan.title = obtainedValue > 0 ? obtainedValue.toLocaleString('ru-RU') : '';
         }
-        // Используется
-        if (usedSpan) {
-            const formatted = formatNumber(usedValue);
-            usedSpan.textContent = formatted === '0' ? '-' : formatted;
-            usedSpan.title = usedValue > 0 ? usedValue.toLocaleString('ru-RU') : '';
+        // Преобразует
+        if (convertsOthersSpan) {
+            const formatted = formatNumber(convertsOthersValue);
+            convertsOthersSpan.textContent = convertsOthersValue > 0 ? formatted : '-';
+            convertsOthersSpan.title = convertsOthersValue > 0 ? convertsOthersValue.toLocaleString('ru-RU') : '';
         }
         // Всего
         if (totalSpan) {
@@ -193,6 +193,19 @@ export function renderTargetMaterialsTable(materialsList) {
         input.min = 0;
         tdInput.appendChild(input);
         tr.appendChild(tdInput);
+        // Иконка копирования (Желаемое количество)
+        const tdCopy = document.createElement('td');
+        tdCopy.className = 'td-copy';
+        tdCopy.style.width = '16px';
+        tdCopy.style.textAlign = 'center';
+        const imgCopy = document.createElement('img');
+        imgCopy.src = 'images/i-copy-16.png';
+        imgCopy.alt = 'Copy';
+        imgCopy.className = 'copy-desired-img';
+        imgCopy.style.cursor = 'pointer';
+        imgCopy.setAttribute('data-material-id', mat.id);
+        tdCopy.appendChild(imgCopy);
+        tr.appendChild(tdCopy);
         tbody.appendChild(tr);
     });
     return tbody;
@@ -268,7 +281,48 @@ export function renderRequiredResourcesTable(baseResourcesList) {
         spanTotal.textContent = '0';
         tdTotal.appendChild(spanTotal);
         tr.appendChild(tdTotal);
+        // Иконка копирования (Итого)
+        const tdCopy = document.createElement('td');
+        tdCopy.className = 'td-copy';
+        tdCopy.style.width = '16px';
+        tdCopy.style.textAlign = 'center';
+        const imgCopy = document.createElement('img');
+        imgCopy.src = 'images/i-copy-16.png';
+        imgCopy.alt = 'Copy';
+        imgCopy.className = 'copy-total-img';
+        imgCopy.style.cursor = 'pointer';
+        imgCopy.setAttribute('data-resource-id', res.id);
+        tdCopy.appendChild(imgCopy);
+        tr.appendChild(tdCopy);
         tbody.appendChild(tr);
     });
     return tbody;
+}
+
+// Добавим обработчики для иконок копирования
+export function setupCopyButtons() {
+    // Копировать "Желаемое количество"
+    document.querySelectorAll('.copy-desired-img').forEach(img => {
+        img.addEventListener('click', function() {
+            const matId = img.getAttribute('data-material-id');
+            const input = document.getElementById('target-' + matId);
+            if (input) {
+                // Копировать только целое число
+                const val = parseInt(input.value.replace(/\D/g, '')) || 0;
+                navigator.clipboard.writeText(String(val));
+            }
+        });
+    });
+    // Копировать "Итого"
+    document.querySelectorAll('.copy-total-img').forEach(img => {
+        img.addEventListener('click', function() {
+            const resId = img.getAttribute('data-resource-id');
+            const span = document.getElementById('req-total-' + resId);
+            if (span) {
+                // Копировать только целое число
+                const val = parseInt(span.textContent.replace(/\D/g, '')) || 0;
+                navigator.clipboard.writeText(String(val));
+            }
+        });
+    });
 }

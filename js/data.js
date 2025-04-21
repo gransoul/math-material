@@ -33,7 +33,7 @@ const allResources = [
 ];
 
 // Базовые коэффициенты (как было раньше)
-const baseConversions = {
+export const baseConversions = {
   "Железная руда": {
     "Полиэлементная руда": 2,
     "Полиорганическая руда": 2,

@@ -2,6 +2,7 @@
 // Экспортируйте функцию calculateRequiredResources
 
 import { recipes, conversions, CONVERSION_LOSS_FACTOR, baseResourcesList } from './data.js';
+import { baseConversions } from './data.js';
 
 export function calculateRequiredResources(desiredMaterials, mineralUsagePercent) {
     // 1. Gross needs (initialNeeds)
@@ -15,45 +16,53 @@ export function calculateRequiredResources(desiredMaterials, mineralUsagePercent
         }
     }
     const allResources = baseResourcesList.map(r => r.name);
-    // 2. Direct use and conversion needs
+    // 2. Direct use and conversion needs (ТЗ 5)
     const directUseAmount = {};
     const amountToConvert = {};
     allResources.forEach(resName => {
         const gross = initialNeeds[resName] || 0;
         const percent = mineralUsagePercent[resName] ?? 100;
-        directUseAmount[resName] = Math.floor(gross * percent / 100);
+        directUseAmount[resName] = gross; // direct use = initialNeeds
         amountToConvert[resName] = Math.ceil(gross * (100 - percent) / 100);
     });
-    // 3. Conversion costs
+    // 3. Conversion costs (ТЗ 5: прямые коэффициенты и учёт actuallyConverted)
     const conversionCosts = {};
-    allResources.forEach(r => { conversionCosts[r] = 0; });
+    const actuallyConverted = {};
+    allResources.forEach(r => { conversionCosts[r] = 0; actuallyConverted[r] = 0; });
     allResources.forEach(targetRes => {
-        let remainingToConvert = amountToConvert[targetRes];
-        if (remainingToConvert <= 0) return;
-        for (const srcRes of allResources) {
+        let originalNeed = amountToConvert[targetRes];
+        if (originalNeed <= 0) return;
+        let allocatedShare = 0;
+        for (const srcObj of baseResourcesList) {
+            const srcRes = srcObj.name;
             if (srcRes === targetRes) continue;
             const srcPercent = mineralUsagePercent[srcRes] ?? 100;
             if (srcPercent === 0) continue;
-            const coef = conversions[targetRes][srcRes];
-            if (!coef) continue;
-            const costPerUnit = coef * CONVERSION_LOSS_FACTOR;
-            // По ТЗ: если ресурс разрешён к использованию, можно использовать его без ограничения его собственной initialNeed
-            const makeNow = remainingToConvert;
+            // --- используем baseConversions ---
+            const directCoef = baseConversions[targetRes]?.[srcRes];
+            if (!directCoef) continue;
+            const potentialShare = srcPercent / 100;
+            const actualShareToCover = Math.max(0, Math.min(potentialShare, 1.0 - allocatedShare));
+            if (actualShareToCover < 1e-8) continue;
+            const makeNow = originalNeed * actualShareToCover;
+            const costPerUnit = directCoef * CONVERSION_LOSS_FACTOR;
             const actualCost = Math.ceil(makeNow * costPerUnit);
-            conversionCosts[srcRes] += actualCost;
-            remainingToConvert -= makeNow;
-            if (remainingToConvert <= 0) break;
+            conversionCosts[srcRes] = (conversionCosts[srcRes] || 0) + actualCost;
+            actuallyConverted[targetRes] = (actuallyConverted[targetRes] || 0) + makeNow;
+            allocatedShare += actualShareToCover;
+            if (allocatedShare >= 0.999999) break;
         }
     });
-    // 4. Итоговая потребность
+    // 4. Итоговая потребность (ТЗ 5)
     const finalRequired = {};
     allResources.forEach(resName => {
-        finalRequired[resName] = directUseAmount[resName] + conversionCosts[resName];
+        finalRequired[resName] = (initialNeeds[resName] || 0) + (conversionCosts[resName] || 0);
     });
     return {
         initialNeeds,
         amountToConvert,
         conversionCosts,
-        finalRequired
+        finalRequired,
+        actuallyConverted
     };
 }

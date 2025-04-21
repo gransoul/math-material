@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const targetTable = document.createElement('table');
     targetTable.id = 'target-materials-table';
     const targetThead = document.createElement('thead');
-    targetThead.innerHTML = '<tr><th></th><th>Материал</th><th>Желаемое количество</th></tr>';
+    targetThead.innerHTML = '<tr><th></th><th>Материал</th><th>Желаемое количество</th><th></th></tr>';
     targetTable.appendChild(targetThead);
     const targetTbody = renderTargetMaterialsTable(materialsList);
     targetTable.appendChild(targetTbody);
@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const reqTable = document.createElement('table');
     reqTable.id = 'required-resources-table';
     const reqThead = document.createElement('thead');
-    reqThead.innerHTML = '<tr><th></th><th>Ресурс</th><th>Использовать</th><th>Необходимо</th><th>Для получения</th><th>Преобразует</th><th>Итого</th></tr>';
+    reqThead.innerHTML = '<tr><th></th><th>Ресурс</th><th>Использовать</th><th>Необходимо</th><th>Для получения</th><th>Преобразует</th><th>Итого</th><th></th></tr>';
     reqTable.appendChild(reqThead);
     const reqTbody = renderRequiredResourcesTable(baseResourcesList);
     reqTable.appendChild(reqTbody);
@@ -60,6 +60,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Навесить обработчики событий
     setupEventHandlers();
+    // Навесить обработчики копирования
+    import('./ui.js').then(mod => { mod.setupCopyButtons(); });
 
     // Первичный расчет и отрисовка
     const initialInputs = readUserInputs();
