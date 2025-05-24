@@ -74,6 +74,30 @@ document.addEventListener('DOMContentLoaded', () => {
     reqTable.appendChild(reqTbody);
     reqBlock.appendChild(reqTable);
 
+    // Кнопка копирования необходимых руд (справа)
+    const copyOreBtnWrapper = document.createElement('div');
+    copyOreBtnWrapper.style.textAlign = 'right';
+    copyOreBtnWrapper.style.margin = '12px 0 0 0';
+    const copyOreBtn = document.createElement('button');
+    copyOreBtn.textContent = 'Копировать в буфер';
+    copyOreBtn.className = 'styled-btn';
+    copyOreBtn.onclick = async () => {
+        const { formatNumber } = await import('./helpers.js');
+        const lines = baseResourcesList.filter(r => !r.isMineral).map(res => {
+            const span = document.getElementById('req-total-' + res.id);
+            let val = span ? Number(span.textContent.replace(/\D/g, '')) : 0;
+            if (val > 0) {
+                return `${res.name}: ${formatNumber(val)} шт.`;
+            }
+            return null;
+        }).filter(Boolean);
+        if (lines.length > 0) {
+            await navigator.clipboard.writeText(lines.join('\n'));
+        }
+    };
+    copyOreBtnWrapper.appendChild(copyOreBtn);
+    reqBlock.appendChild(copyOreBtnWrapper);
+
     // Вставляем блоки в контейнер
     container.appendChild(targetBlock);
     container.appendChild(reqBlock);
