@@ -34,30 +34,29 @@ document.addEventListener('DOMContentLoaded', () => {
     targetTable.appendChild(targetTbody);
     targetBlock.appendChild(targetTable);
 
-    // Кнопка копирования желаемых материалов
+    // Кнопка копирования желаемых материалов (справа)
+    const copyBtnWrapper = document.createElement('div');
+    copyBtnWrapper.style.textAlign = 'right';
+    copyBtnWrapper.style.margin = '12px 0 0 0';
     const copyBtn = document.createElement('button');
-    copyBtn.textContent = 'Скопировать список целей';
+    copyBtn.textContent = 'Копировать в буфер';
     copyBtn.className = 'styled-btn';
-    copyBtn.style.margin = '12px 0 0 0';
-    copyBtn.onclick = () => {
-        let result = '';
-        materialsList.forEach(mat => {
+    copyBtn.onclick = async () => {
+        const { formatNumber } = await import('./helpers.js');
+        const lines = materialsList.map(mat => {
             const input = document.getElementById('target-' + mat.id);
             let val = input ? Number(input.value.replace(/\D/g, '')) : 0;
             if (val > 0) {
-                // Используем formatNumber из helpers.js
-                import('./helpers.js').then(({ formatNumber }) => {
-                    const line = `${mat.name}: ${formatNumber(val)} шт.`;
-                    result += line + '\n';
-                    // Если это последний материал — копируем
-                    if (mat === materialsList[materialsList.length - 1]) {
-                        navigator.clipboard.writeText(result.trim());
-                    }
-                });
+                return `${mat.name}: ${formatNumber(val)} шт.`;
             }
-        });
+            return null;
+        }).filter(Boolean);
+        if (lines.length > 0) {
+            await navigator.clipboard.writeText(lines.join('\n'));
+        }
     };
-    targetBlock.appendChild(copyBtn);
+    copyBtnWrapper.appendChild(copyBtn);
+    targetBlock.appendChild(copyBtnWrapper);
 
     // Блок необходимых ресурсов
     const reqBlock = document.createElement('div');

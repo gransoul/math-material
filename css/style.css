@@ -214,6 +214,10 @@ thead th {
   margin: 5px 5px 0 5px;
   padding: 0;
 }
+.copy-btn-wrapper {
+  text-align: right;
+  margin: 12px 0 0 0;
+}
 
 /* --- Адаптивность --- */
 @media (max-width: 1200px) {
