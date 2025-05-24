@@ -34,6 +34,31 @@ document.addEventListener('DOMContentLoaded', () => {
     targetTable.appendChild(targetTbody);
     targetBlock.appendChild(targetTable);
 
+    // Кнопка копирования желаемых материалов
+    const copyBtn = document.createElement('button');
+    copyBtn.textContent = 'Скопировать список целей';
+    copyBtn.className = 'styled-btn';
+    copyBtn.style.margin = '12px 0 0 0';
+    copyBtn.onclick = () => {
+        let result = '';
+        materialsList.forEach(mat => {
+            const input = document.getElementById('target-' + mat.id);
+            let val = input ? Number(input.value.replace(/\D/g, '')) : 0;
+            if (val > 0) {
+                // Используем formatNumber из helpers.js
+                import('./helpers.js').then(({ formatNumber }) => {
+                    const line = `${mat.name}: ${formatNumber(val)} шт.`;
+                    result += line + '\n';
+                    // Если это последний материал — копируем
+                    if (mat === materialsList[materialsList.length - 1]) {
+                        navigator.clipboard.writeText(result.trim());
+                    }
+                });
+            }
+        });
+    };
+    targetBlock.appendChild(copyBtn);
+
     // Блок необходимых ресурсов
     const reqBlock = document.createElement('div');
     reqBlock.className = 'block';
