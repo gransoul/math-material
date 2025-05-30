@@ -42,12 +42,11 @@ document.addEventListener('DOMContentLoaded', () => {
     copyBtn.textContent = 'Копировать в буфер';
     copyBtn.className = 'styled-btn';
     copyBtn.onclick = async () => {
-        const { formatNumber } = await import('./helpers.js');
         const lines = materialsList.map(mat => {
             const input = document.getElementById('target-' + mat.id);
-            let val = input ? Number(input.value.replace(/\D/g, '')) : 0;
-            if (val > 0) {
-                return `${mat.name}: ${formatNumber(val)} шт.`;
+            let val = input ? input.value.replace(/\D/g, '') : '';
+            if (val && Number(val) > 0) {
+                return `${mat.name}: ${val} шт.`;
             }
             return null;
         }).filter(Boolean);
